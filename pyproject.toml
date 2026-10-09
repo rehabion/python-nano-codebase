@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanotox"
+version = "0.1.0"
+description = "Reproducible machine-learning pipeline for nanoparticle cytotoxicity prediction and algorithm benchmarking"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "python-nano-codebase contributors" }]
+keywords = ["nanotoxicology", "nano-QSAR", "machine-learning", "cheminformatics", "cytotoxicity"]
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "scipy>=1.11",
+    "scikit-learn>=1.4",
+    "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+boost = ["xgboost>=2.0", "lightgbm>=4.1"]
+explain = ["shap>=0.44"]
+dev = ["pytest>=7.4"]
+
+[project.scripts]
+nanotox = "nanotox.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
