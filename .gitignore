@@ -19,3 +19,7 @@ data/*.csv
 
 # OS
 .DS_Store
+
+# Run logs
+*.log
+bench_full.log

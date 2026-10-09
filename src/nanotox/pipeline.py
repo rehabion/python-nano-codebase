@@ -125,9 +125,14 @@ def run_benchmark(config: PipelineConfig | None = None,
         )
 
         # Unbiased generalisation estimate via nested CV on the training split.
+        # IMPORTANT: only ONE level of the nested loop is parallelised. The
+        # inner RandomizedSearchCV already uses n_jobs=-1, so the outer
+        # cross_validate runs serially (n_jobs=1). Parallelising both, while
+        # the tree/boosting estimators are *also* multi-threaded, oversubscribes
+        # the CPU badly (dozens of threads per core) and is dramatically slower.
         nested = cross_validate(
             search, X_train, y_train, cv=outer_cv, scoring=_SCORING,
-            n_jobs=-1, return_estimator=False,
+            n_jobs=1, return_estimator=False,
         )
         cv_mean = {_clean(k): float(np.mean(v)) for k, v in nested.items()
                    if k.startswith("test_")}

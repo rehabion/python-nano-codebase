@@ -95,7 +95,7 @@ def build_model_specs(random_state: int = RANDOM_STATE) -> dict[str, ModelSpec]:
         name="RandomForest",
         factory=lambda: RandomForestClassifier(
             class_weight="balanced_subsample", random_state=random_state,
-            n_jobs=-1),
+            n_jobs=1),
         param_distributions={
             "clf__n_estimators": randint(200, 800),
             "clf__max_depth": randint(3, 25),
@@ -109,7 +109,7 @@ def build_model_specs(random_state: int = RANDOM_STATE) -> dict[str, ModelSpec]:
         name="ExtraTrees",
         factory=lambda: ExtraTreesClassifier(
             class_weight="balanced_subsample", random_state=random_state,
-            n_jobs=-1),
+            n_jobs=1),
         param_distributions={
             "clf__n_estimators": randint(200, 800),
             "clf__max_depth": randint(3, 25),
@@ -136,7 +136,7 @@ def build_model_specs(random_state: int = RANDOM_STATE) -> dict[str, ModelSpec]:
             name="XGBoost",
             factory=lambda: XGBClassifier(
                 objective="binary:logistic", eval_metric="logloss",
-                tree_method="hist", random_state=random_state, n_jobs=-1),
+                tree_method="hist", random_state=random_state, n_jobs=1),
             param_distributions={
                 "clf__n_estimators": randint(200, 800),
                 "clf__learning_rate": loguniform(1e-2, 3e-1),
@@ -152,7 +152,7 @@ def build_model_specs(random_state: int = RANDOM_STATE) -> dict[str, ModelSpec]:
         specs["lightgbm"] = ModelSpec(
             name="LightGBM",
             factory=lambda: LGBMClassifier(
-                objective="binary", random_state=random_state, n_jobs=-1,
+                objective="binary", random_state=random_state, n_jobs=1,
                 verbose=-1),
             param_distributions={
                 "clf__n_estimators": randint(200, 800),
