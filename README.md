@@ -65,6 +65,10 @@ python -m nanotox.cli info
 # Full benchmark across the whole model zoo (+ feature importance)
 python -m nanotox.cli benchmark --importance
 
+# Quick iteration preset: fewer folds/iterations, fast models only
+# (skips SVM/GradientBoosting). Explicit flags still override it.
+python -m nanotox.cli benchmark --fast
+
 # Cross-family generalisation test
 python -m nanotox.cli lofo
 

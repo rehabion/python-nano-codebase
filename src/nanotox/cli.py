@@ -19,6 +19,12 @@ from .models import available_models
 from .pipeline import feature_importance, leave_one_family_out, run_benchmark
 
 
+# Fast preset: quick folds/search and a subset of inexpensive models, for
+# iteration on modest hardware. Heavy models (SVM, GradientBoosting) and the
+# full search are reserved for the publication-grade default run.
+_FAST_MODELS = ["logistic", "random_forest", "xgboost", "lightgbm"]
+
+
 def _build_config(args) -> PipelineConfig:
     data = DataConfig()
     if args.remote_url:
@@ -27,15 +33,26 @@ def _build_config(args) -> PipelineConfig:
         data.n_synthetic = args.n_synthetic
     if args.viability is not None:
         data.viability_cutoff = args.viability
-    cv = CVConfig(
-        outer_folds=args.outer_folds,
-        inner_folds=args.inner_folds,
-        n_iter_search=args.n_iter,
-    )
+
+    fast = getattr(args, "fast", False)
+    # --fast only fills values the user did not set explicitly, so explicit
+    # flags always win.
+    outer = args.outer_folds if args.outer_folds is not None else (3 if fast else 5)
+    inner = args.inner_folds if args.inner_folds is not None else (2 if fast else 3)
+    n_iter = args.n_iter if args.n_iter is not None else (8 if fast else 40)
+    cv = CVConfig(outer_folds=outer, inner_folds=inner, n_iter_search=n_iter)
+
+    if args.models:
+        models = args.models.split(",")
+    elif fast:
+        models = list(_FAST_MODELS)
+    else:
+        models = None
+
     return PipelineConfig(
         data=data, cv=cv,
         results_dir=Path(args.results_dir),
-        models=args.models.split(",") if args.models else None,
+        models=models,
     )
 
 
@@ -104,10 +121,16 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Synthetic cohort size when generating data")
     common.add_argument("--viability", type=float, default=None,
                         help="Viability%% cutoff for deriving the binary target")
-    common.add_argument("--outer-folds", type=int, default=5)
-    common.add_argument("--inner-folds", type=int, default=3)
-    common.add_argument("--n-iter", type=int, default=40,
-                        help="RandomizedSearchCV iterations per model")
+    common.add_argument("--outer-folds", type=int, default=None,
+                        help="Outer CV folds (default 5, or 3 with --fast)")
+    common.add_argument("--inner-folds", type=int, default=None,
+                        help="Inner CV folds (default 3, or 2 with --fast)")
+    common.add_argument("--n-iter", type=int, default=None,
+                        help="RandomizedSearchCV iterations per model "
+                             "(default 40, or 8 with --fast)")
+    common.add_argument("--fast", action="store_true",
+                        help="Quick preset: fewer folds/iterations and a subset "
+                             "of inexpensive models (skips SVM/GradientBoosting)")
     common.add_argument("--models", default=None,
                         help="Comma-separated subset of model keys")
     common.add_argument("--results-dir", default="results")
